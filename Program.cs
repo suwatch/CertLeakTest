@@ -34,6 +34,7 @@ namespace CertLeakTest
                     cert = CertFromBytesInCache(bytes);
                     FileCount($"After CertFromBytesInCache");
                 }
+
                 TestPrivateKey(cert);
 
                 if (useStore)
@@ -110,7 +111,7 @@ namespace CertLeakTest
             // remove key container from C:\Users\suwatch\AppData\Roaming\Microsoft\Crypto\RSA
             if (cert.PrivateKey is RSACryptoServiceProvider rsa)
             {
-                TraceLine($"Cert RSACryptoServiceProvider container file removed {cert.Subject}, {rsa.CspKeyContainerInfo.UniqueKeyContainerName}");
+                TraceLine($"Cert RSACryptoServiceProvider container file removed {cert.Subject}, keyContainerName: {rsa.CspKeyContainerInfo.KeyContainerName}, uniqueKeyContainerName: {rsa.CspKeyContainerInfo.UniqueKeyContainerName}");
                 rsa.PersistKeyInCsp = false;
                 rsa.Clear();
             }
@@ -150,7 +151,6 @@ namespace CertLeakTest
             TraceLine($"Free: {freeBytesAvailable / 1_000}KB, Total: {totalNumberOfBytes / 1_000}KB, Free: {totalNumberOfFreeBytes / 1_000}KB");
         }
 
-
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool GetDiskFreeSpaceEx(string lpDirectoryName,
@@ -177,7 +177,7 @@ namespace CertLeakTest
                         TraceLine($"Cert removed {cert.Subject}, {cert.Thumbprint}");
 
                         // remove key container from C:\Users\suwatch\AppData\Roaming\Microsoft\Crypto\RSA since using X509KeyStorageFlags.PersistKeySet
-                        // cert.DeleteKeyContainer();
+                        cert.DeleteKeyContainer();
 
                         if (max-- < 0)
                         {
@@ -253,7 +253,7 @@ namespace CertLeakTest
             return cert;
         }
 
-        static void TraceLine(object message)
+        public static void TraceLine(object message)
         {
             Console.WriteLine($"{DateTime.UtcNow:s} {message}");
         }
